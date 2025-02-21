@@ -45,3 +45,12 @@ namespace NeocortexApiSamplePerformance
                         NumActiveColumnsPerInhArea = double.TryParse(worksheet.Cells[row, 17].Text, out double numActiveColumns) ? (int)numActiveColumns : 0, // Fixed casting
                         PotentialRadius = int.TryParse(worksheet.Cells[row, 18].Text, out int potentialRadius) ? potentialRadius : 0,
                         MaxBoost = double.TryParse(worksheet.Cells[row, 19].Text, out double maxBoost) ? maxBoost : 0.0,
+                        DutyCyclePeriod = int.TryParse(worksheet.Cells[row, 20].Text, out int dutyCyclePeriod) ? dutyCyclePeriod : 0,
+                        MinPctOverlapDutyCycles = double.TryParse(worksheet.Cells[row, 21].Text, out double minPct) ? minPct : 0.0,
+                        //MaxSynapsesPerSegment = double.TryParse(worksheet.Cells[row, 22].Text, out double maxSynapses) ? maxSynapses : 0.0,
+                        ActivationThreshold = int.TryParse(worksheet.Cells[row, 23].Text, out int activationThreshold) ? activationThreshold : 0,
+                        ConnectedPermanence = double.TryParse(worksheet.Cells[row, 24].Text, out double connectedPermanence) ? connectedPermanence : 0.0,
+                        PermanenceDecrement = double.TryParse(worksheet.Cells[row, 25].Text, out double permanenceDecrement) ? permanenceDecrement : 0.0,
+                        PermanenceIncrement = double.TryParse(worksheet.Cells[row, 26].Text, out double permanenceIncrement) ? permanenceIncrement : 0.0,
+                        PredictedSegmentDecrement = double.TryParse(worksheet.Cells[row, 27].Text, out double predictedSegmentDecrement) ? predictedSegmentDecrement : 0.0,
+                        SequenceLength = int.TryParse(worksheet.Cells[row, 28].Text, out int sequenceLength) ? sequenceLength : 0,
