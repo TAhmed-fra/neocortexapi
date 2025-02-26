@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 
 
-namespace NeoCortexApiSample
+namespace NeocortexApiSamplePerformance
 {
     /// <summary>
     /// Implements an experiment that demonstrates how to learn sequences.

@@ -1,4 +1,4 @@
-﻿using NeoCortexApi;
+using NeoCortexApi;
 using NeoCortexApi.Classifiers;
 using NeoCortexApi.Encoders;
 using NeoCortexApi.Entities;
@@ -74,7 +74,7 @@ namespace NeocortexApiSamplePerformance
             return RunExperiment(inputBits, cfg, encoder, sequences);
         }
 
-        
+
         private Predictor RunExperiment(int inputBits, HtmConfig cfg, EncoderBase encoder, Dictionary<string, List<double>> sequences)
         {
             Stopwatch sw = new Stopwatch();
@@ -126,12 +126,12 @@ namespace NeocortexApiSamplePerformance
 
             //double[] inputs = inputValues.ToArray();
             int[] prevActiveCols = new int[0];
-            
+
             int cycle = 0;
             int matches = 0;
 
-            var lastPredictedValues = new List<string>(new string[] { "0"});
-            
+            var lastPredictedValues = new List<string>(new string[] { "0" });
+
             int maxCycles = 3500;
 
             //
@@ -151,7 +151,7 @@ namespace NeocortexApiSamplePerformance
                     foreach (var input in inputs.Value)
                     {
                         Debug.WriteLine($" -- {inputs.Key} - {input} --");
-                    
+
                         var lyrOut = layer1.Compute(input, true);
 
                         if (isInStableState)
@@ -257,12 +257,12 @@ namespace NeocortexApiSamplePerformance
                                 Debug.WriteLine($"Current Input: {input} \t| Predicted Input: {item.PredictedInput} - {item.Similarity}");
                             }
 
-                            lastPredictedValues = predictedInputValues.Select(v=>v.PredictedInput).ToList();
+                            lastPredictedValues = predictedInputValues.Select(v => v.PredictedInput).ToList();
                         }
                         else
                         {
                             Debug.WriteLine($"NO CELLS PREDICTED for next cycle.");
-                            lastPredictedValues = new List<string> ();
+                            lastPredictedValues = new List<string>();
                         }
                     }
 
@@ -303,11 +303,11 @@ namespace NeocortexApiSamplePerformance
             }
 
             Debug.WriteLine("------------ END ------------");
-           
+
             return new Predictor(layer1, mem, cls);
         }
 
-      
+
         /// <summary>
         /// Gets the number of all unique inputs.
         /// </summary>

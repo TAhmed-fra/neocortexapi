@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace NeoCortexApiSample
+namespace NeocortexApiSamplePerformance
 {
     internal class ImageBinarizerSpatialPattern
     {

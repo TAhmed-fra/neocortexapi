@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.IO;
 
-namespace NeoCortexApiSample
+namespace NeocortexApiSamplePerformance
 {
     /// <summary>
     /// Implements an experiment that demonstrates how to learn spatial patterns.

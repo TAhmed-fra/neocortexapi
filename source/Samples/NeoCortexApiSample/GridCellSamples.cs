@@ -7,7 +7,7 @@ using GridCell.encoder;
 using GridCell.js;
 using NeoCortexApi;
 
-namespace NeoCortexApiSample
+namespace NeocortexApiSamplePerformance
 {
     public class GridCellSamples
     {
