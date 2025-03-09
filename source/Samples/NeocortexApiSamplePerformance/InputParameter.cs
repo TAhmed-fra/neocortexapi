@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NeocortexApiSamplePerformance
+﻿public class InputParameter
 {
-    public class InputParameter
-    {
-        public string sequenceFolder {  get; set; }
-        public string outputCsvPath { get; set; }
-        public string experimentClass { get; set; }
-        public int cpuCores { get; set; }
-        public double cpuSpeed { get; set; }
-        public string dotnetVersion { get; set; }
+    public string SequenceFolder { get; set; }
+    public string OutputCsvPath { get; set; }
+    public int CpuCores { get; set; }
+    public double CpuSpeedGHz { get; set; }
+    public string DotnetVersion { get; set; }
+    public Dictionary<string, List<double>> Sequences { get; set; }
+    public string ExperimentClass { get; set; }
 
-        public Dictionary<string, List<double>> sequences {  get; set; }
-    }
+    //  Add missing property for CPU Affinity
+    public int CpuAffinity { get; set; }
 }
