@@ -8,6 +8,6 @@
     public Dictionary<string, List<double>> Sequences { get; set; }
     public string ExperimentClass { get; set; }
 
-    //  Add missing property for CPU Affinity
+    
     public int CpuAffinity { get; set; }
 }

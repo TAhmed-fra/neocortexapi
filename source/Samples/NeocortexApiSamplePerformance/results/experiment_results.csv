@@ -1,5 +1,0 @@
-ExperimentName,SequenceLength,CPU_Cores,CPU_Speed_GHz,DotnetVersion,ExecutionTime_ms
-SequenceA,5,4,3.5,8.0,21437
-SequenceB,6,4,3.5,8.0,21437
-SequenceA,5,4,3.5,8.0,25418
-SequenceB,6,4,3.5,8.0,25418

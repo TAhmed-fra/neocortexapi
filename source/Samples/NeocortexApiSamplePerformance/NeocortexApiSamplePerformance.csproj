@@ -1,32 +1,62 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	
+	
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\GridCell\GridCell.csproj" />
-    <ProjectReference Include="..\..\NeoCortexApi\NeoCortexApi.csproj" />
-    <ProjectReference Include="..\..\NeoCortexEntities\NeoCortexEntities.csproj" />
-    <ProjectReference Include="..\..\NeoCortexUtils\NeoCortexUtils.csproj" />
-    <ProjectReference Include="..\NeoCortexApiSample\NeoCortexApiSample.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="BouncyCastle.NetCore" Version="2.2.1" />
+		<PackageReference Include="EPPlus" Version="7.7.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="System.Collections" Version="4.3.0" />
+		<PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
+		<PackageReference Include="System.Collections.NonGeneric" Version="4.3.0" />
+		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.3" />
+		<PackageReference Include="System.IO" Version="4.3.0" />
+		<PackageReference Include="System.Management" Version="9.0.3" />
+		<PackageReference Include="System.Threading" Version="4.3.0" />
+		<PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="InputData\" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\GridCell\GridCell.csproj" />
+		<ProjectReference Include="..\..\HtmActorHost\HtmActorHost.csproj" />
+		<ProjectReference Include="..\..\ImageEncoder\HtmImageEncoder.csproj" />
+		<ProjectReference Include="..\..\NeoCortexApi.Experiments\NeoCortexApi.Experiments.csproj" />
+		<ProjectReference Include="..\..\NeoCortexApi\NeoCortexApi.csproj" />
+		<ProjectReference Include="..\..\NeoCortexEntities\NeoCortexEntities.csproj" />
+		<ProjectReference Include="..\..\NeoCortexUtils\NeoCortexUtils.csproj" />
+		<ProjectReference Include="..\NeoCortexApiSample\NeoCortexApiSample.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="EPPlus" Version="7.5.3" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="InputData\MultisequenceLearningInput.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="InputData\MultisequenceLearningInput.xlsx">
+	<ItemGroup>
+		 <None Update="dataset\dataset_01.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
+    <None Update="dataset\dataset_02.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="dataset\dataset_03.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="dataset\dataset_04.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="dataset\test_01.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+		
+	</ItemGroup>
 
 </Project>

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.IO;
-using System.Threading;
-using NeocortexApiSamplePerformance;
+using System.Linq;
+using Newtonsoft.Json;
 using NeoCortexApi;
 
 namespace NeocortexApiSamplePerformance
@@ -19,42 +17,50 @@ namespace NeocortexApiSamplePerformance
 
             try
             {
+                //  Parse Arguments
                 InputParameter inputParameter = ParseArguments(args);
                 ValidateInputDirectory(inputParameter.SequenceFolder);
-                inputParameter.Sequences = LoadSequences(inputParameter.SequenceFolder);
 
+                //  Apply CPU Affinity
                 Console.WriteLine(" Applying CPU Affinity...");
                 int activeCores = SetCpuAffinity(inputParameter.CpuAffinity);
-                inputParameter.CpuCores = activeCores; // Update core count
+                // Update core count
+                inputParameter.CpuCores = activeCores;
 
-                Console.WriteLine(" CPU Affinity Set. Active Cores: " + string.Join(", ", GetActiveCores(inputParameter.CpuAffinity)) + "\n");
+                //  Load Training and Testing Sequences
+                List<Sequence> trainingSequences = LoadDatasets(inputParameter.SequenceFolder, "dataset_*.json");
+                List<Sequence> testSequences = LoadDatasets(inputParameter.SequenceFolder, "test_*.json");
+                Console.WriteLine($" CPU Affinity Set. Active Cores: {string.Join(", ", GetActiveCores(inputParameter.CpuAffinity))}\n");
+                Console.WriteLine($" Loaded {trainingSequences.Count} training sequences.");
+                Console.WriteLine($" Loaded {testSequences.Count} test sequences.");
 
-                RunExperiment(inputParameter);
+                // Run Experiment
+                RunExperiment(inputParameter, trainingSequences, testSequences);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($" Error: {ex.Message}");
+                Console.WriteLine($" Fatal Error: {ex.Message}");
+                Console.WriteLine($" Stack Trace: {ex.StackTrace}");
             }
 
-            Console.WriteLine(" Experiment Completed. Press Enter to exit.");
-            Console.ReadLine();
+            Console.WriteLine("\n Experiment Completed. Press Enter to exit.");
+            // Keeps the console open
+            Console.ReadLine();  
         }
 
         private static InputParameter ParseArguments(string[] args)
         {
             if (args.Length == 0)
             {
-                throw new ArgumentException(" Usage: dotnet run --sequence-folder <path> --out <csv path> --cores <num> --cpu-speed <GHz> --dotnet <version> --experiment <class> --affinity <bitmask>");
+                throw new ArgumentException(" Missing required arguments. Use: dotnet run --sequence-folder <path> --out <csv path> --cores <num> --experiment <class>");
             }
 
             return new InputParameter
             {
-                SequenceFolder = GetArgumentValue(args, "--sequence-folder"),
-                OutputCsvPath = GetArgumentValue(args, "--out"),
-                ExperimentClass = GetArgumentValue(args, "--experiment-class"),
+                SequenceFolder = GetArgumentValue(args, "--sequence-folder") ?? throw new ArgumentException(" Missing required argument: --sequence-folder"),
+                OutputCsvPath = GetArgumentValue(args, "--out") ?? "output.csv",
+                ExperimentClass = GetArgumentValue(args, "--experiment") ?? throw new ArgumentException(" Missing required argument: --experiment"),
                 CpuCores = int.Parse(GetArgumentValue(args, "--cores")),
-                CpuSpeedGHz = double.Parse(GetArgumentValue(args, "--cpu-speed")),
-                DotnetVersion = GetArgumentValue(args, "--dotnet"),
                 CpuAffinity = int.Parse(GetArgumentValue(args, "--affinity"))
             };
         }
@@ -68,6 +74,7 @@ namespace NeocortexApiSamplePerformance
                     return args[i + 1];
                 }
             }
+
             throw new ArgumentException($" Missing required argument: {argName}");
         }
 
@@ -75,66 +82,245 @@ namespace NeocortexApiSamplePerformance
         {
             if (!Directory.Exists(folderPath))
             {
-                throw new DirectoryNotFoundException($" Sequence folder '{folderPath}' not found.");
+                throw new DirectoryNotFoundException($"Sequence folder '{folderPath}' not found.");
             }
         }
 
-        private static Dictionary<string, List<double>> LoadSequences(string folderPath)
+        private static List<Sequence> LoadDatasets(string folderPath, string pattern)
         {
-            Console.WriteLine(" Loading sequences from: " + folderPath);
-            List<MultiSequenceInput> inputs = ReadData.LoadSequences(folderPath);
-            Console.WriteLine($" Loaded {inputs.Count} sequences.");
-            return inputs.ToDictionary(i => i.ExperimentName, i => i.Sequence1.Concat(i.Sequence2).ToList());
-        }
+            List<Sequence> sequences = new List<Sequence>();
+            string[] files = Directory.GetFiles(folderPath, pattern);
 
-        private static void RunExperiment(InputParameter inputParameter)
-        {
-            Stopwatch totalTimer = Stopwatch.StartNew();
-            double accuracy = 0;
-
-            Console.WriteLine("\n Running Experiment: " + inputParameter.ExperimentClass);
-
-            switch (inputParameter.ExperimentClass)
+            foreach (var file in files)
             {
-                case "SP":
-                    Stopwatch swSP = Stopwatch.StartNew();
-                    SpatialPatternLearning experiment = new SpatialPatternLearning();
-                    experiment.Run();
-                    swSP.Stop();
+                var seqData = ReadDataset(file);
+                sequences.AddRange(seqData);
+            }
 
-                    Console.WriteLine($" SP Experiment Completed in {swSP.Elapsed.TotalSeconds:F2}s");
+            return sequences;
+        }
 
-                    PerformanceLogger.LogPerformance(inputParameter, "SP Experiment", 0, swSP.Elapsed.TotalSeconds, swSP.ElapsedMilliseconds, GetCurrentCpuUsage(), GetAvailableMemory(), inputParameter.CpuCores);
-                    break;
-
-                case "MultiSequenceLearning":
-                    foreach (var sequence in inputParameter.Sequences)
-                    {
-                        Stopwatch swSequence = Stopwatch.StartNew();
-                        Console.WriteLine($" Processing Sequence: {sequence.Key} ({sequence.Value.Count} elements)");
-
-                        RunMultiSequenceLearningExperiment(new Dictionary<string, List<double>> { { sequence.Key, sequence.Value } });
-
-                        swSequence.Stop();
-
-                        Console.WriteLine($" {sequence.Key} Experiment Completed in {swSequence.Elapsed.TotalSeconds:F2}s");
-
-                        accuracy = GetExperimentAccuracy();
-                        PerformanceLogger.LogPerformance(inputParameter, sequence.Key, sequence.Value.Count, swSequence.Elapsed.TotalSeconds, swSequence.ElapsedMilliseconds, GetCurrentCpuUsage(), GetAvailableMemory(), inputParameter.CpuCores);
-                    }
-                    break;
-
-                default:
-                    Console.WriteLine(" Unknown experiment type.");
-                    break;
+        private static List<Sequence> ReadDataset(string datasetPath)
+        {
+            try
+            {
+                Console.WriteLine($" Reading Dataset: {datasetPath}");
+                return JsonConvert.DeserializeObject<List<Sequence>>(File.ReadAllText(datasetPath));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($" Error reading dataset: {ex.Message}");
+                return new List<Sequence>();
             }
         }
+
+        private static (double cpuUsage, double ramUsage, double cpuSpeedGHz) GetSystemPerformanceMetrics()
+        {
+            using (var process = Process.GetCurrentProcess())
+            {
+                double cpuUsage = process.TotalProcessorTime.TotalMilliseconds / Environment.ProcessorCount;
+                double ramUsage = process.PrivateMemorySize64 / (1024.0 * 1024.0); // Convert to MB
+
+                // Get CPU Speed (GHz)
+                double cpuSpeedGHz = GetCpuSpeedGHz();
+
+                return (cpuUsage, ramUsage, cpuSpeedGHz);
+            }
+        }
+
+        // Function to Get CPU Speed
+        private static double GetCpuSpeedGHz()
+        {
+            try
+            {
+                using (var searcher = new System.Management.ManagementObjectSearcher("SELECT MaxClockSpeed FROM Win32_Processor"))
+                {
+                    foreach (var item in searcher.Get())
+                    {
+                        return Convert.ToDouble(item["MaxClockSpeed"]) / 1000.0; // Convert MHz to GHz
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR: Could not retrieve CPU speed. Exception: {ex.Message}");
+            }
+            return 0; // Default to 0 if not found
+        }
+
+        //private static (double cpuUsage, double ramUsage) GetSystemPerformanceMetrics()
+        //{
+        //    using (var process = Process.GetCurrentProcess())
+        //    {
+        //        double cpuUsage = process.TotalProcessorTime.TotalMilliseconds / Environment.ProcessorCount;
+        //        double ramUsage = process.PrivateMemorySize64 / (1024.0 * 1024.0);
+
+        //        return (cpuUsage, ramUsage);
+        //    }
+        //}
+
+        private static void RunExperiment(InputParameter inputParameter, List<Sequence> trainingSequences, List<Sequence> testSequences)
+        {
+            Console.WriteLine($" Running Experiment: {inputParameter.ExperimentClass}\n");
+
+            MultiSequenceLearning experiment = new MultiSequenceLearning();
+
+            Console.WriteLine(" Starting Model Training...");
+            Stopwatch trainingTimer = Stopwatch.StartNew();
+
+            var processedTrainingData = trainingSequences
+                .GroupBy(seq => seq.name)
+                .Select(g => new Sequence { name = g.Key, Data = g.SelectMany(seq => seq.Data).ToArray() })
+                .ToList();
+
+            // Train the model
+            var predictor = experiment.Run(processedTrainingData);
+            trainingTimer.Stop();
+
+            double learningTimeSeconds = trainingTimer.Elapsed.TotalSeconds;
+            long learningTimeMilliseconds = trainingTimer.ElapsedMilliseconds;
+
+            Console.WriteLine($" Model Training Completed in {learningTimeSeconds:F2} seconds.");
+            //var (cpuUsage, ramUsage) = GetSystemPerformanceMetrics();
+            var (cpuUsage, ramUsage, cpuSpeedGHz) = GetSystemPerformanceMetrics();
+
+
+            //  Now, Run Testing
+            Console.WriteLine(" Starting Model Testing...");
+            Stopwatch testingTimer = Stopwatch.StartNew();
+
+            foreach (var testSeq in testSequences)
+            {
+                Console.WriteLine($" Testing Sequence: {testSeq.name} -> {string.Join("-", testSeq.Data)}");
+                // Reset predictor before testing a new sequence
+                predictor.Reset();  
+
+                int matchCount = 0;
+                int totalPredictions = testSeq.Data.Length - 1;
+                List<string> predictionLog = new List<string>();
+
+                int prev = -1;
+                bool first = true;
+
+                //  Run predictions on test data
+                foreach (var next in testSeq.Data)
+                {
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        var res = predictor.Predict(prev);
+                        string log = $"Input: {prev}";
+
+                        if (res.Count > 0)
+                        {
+                            var bestPrediction = res.First();
+                            string[] predictionParts = bestPrediction.PredictedInput.Split('-');
+                            int predictedValue = int.Parse(predictionParts.Last());
+
+                            log += $", Predicted: {predictedValue}";
+
+                            if (next == predictedValue)
+                            {
+                                matchCount++;
+                            }
+                        }
+                        else
+                        {
+                            log += ", No prediction made.";
+                        }
+
+                        predictionLog.Add(log);
+                    }
+
+                    prev = (int)next;
+                }
+
+                // Calculate accuracy
+                double testAccuracy = (double)matchCount / totalPredictions * 100.0;
+                testingTimer.Stop();
+
+                Console.WriteLine($" Accuracy for {testSeq.name}: {testAccuracy:F2}%");
+
+                // Now log both training and testing results
+                foreach (var seq in processedTrainingData)
+                {
+                    double trainAccuracy = experiment.GetAccuracy(seq.name);  //  Fetch actual training accuracy
+
+                    Console.WriteLine($"Logging: {seq.name}, Training Accuracy: {trainAccuracy}, Testing Accuracy: {testAccuracy}, Output file: {inputParameter.OutputCsvPath}");
+
+                    PerformanceLogger.LogPerformance(
+                     inputParameter.ExperimentClass,
+                     inputParameter,
+                     seq.name,
+                     seq.Data.Length,
+                     learningTimeSeconds, 
+                     cpuUsage,
+                     ramUsage,
+                     cpuSpeedGHz,
+                     inputParameter.CpuCores,
+                     trainAccuracy  
+                        );
+
+
+                    //PerformanceLogger.LogPerformance(
+                    // inputParameter.ExperimentClass,
+                    // inputParameter,
+                    // seq.name,
+                    // seq.Data.Length, // 🔹 Number of Elements in the Sequence
+                    // learningTimeSeconds,
+                    // cpuUsage,
+                    // ramUsage,
+                    // cpuSpeedGHz, // NEW: Track CPU Speed
+                    // inputParameter.CpuCores
+                    // );
+                    //PerformanceLogger.LogPerformance(
+                    //// Pass Experiment Name
+                    //inputParameter.ExperimentClass,
+                    //// Pass InputParameter object
+                    //inputParameter,  
+                    //seq.name,
+                    //seq.Data.Length,
+                    //// Log training time
+                    //learningTimeSeconds,   
+                    //learningTimeMilliseconds,
+                    //// Log CPU usage
+                    //cpuUsage,
+                    //// Log RAM usage
+                    //ramUsage,
+                    //// Log active CPU cores
+                    //inputParameter.CpuCores,
+                    //// Log actual testing accuracy
+                    //testAccuracy
+                    //);
+
+
+                    Console.WriteLine(" PerformanceLogger.LogPerformance() called successfully!");
+                }
+            }
+
+            Console.WriteLine($" Model Testing Completed in {testingTimer.Elapsed.TotalSeconds:F2} seconds.");
+        }
+
 
         private static int SetCpuAffinity(int affinityBitmask)
         {
             Process process = Process.GetCurrentProcess();
             process.ProcessorAffinity = (IntPtr)affinityBitmask;
-            return GetActiveCores(affinityBitmask).Count;
+
+            // Retrieve applied affinity
+            long appliedAffinity = process.ProcessorAffinity.ToInt64();
+
+            // Get the actual active cores
+            var activeCores = GetActiveCores((int)appliedAffinity);
+
+            // Debugging: Print confirmed affinity
+            Console.WriteLine($" CPU Affinity Applied: {Convert.ToString(appliedAffinity, 2).PadLeft(Environment.ProcessorCount, '0')} (Binary Mask)");
+            Console.WriteLine($" Active Cores Confirmed: {string.Join(", ", activeCores)}");
+
+            return activeCores.Count;
         }
 
         private static List<int> GetActiveCores(int affinityBitmask)
@@ -142,83 +328,51 @@ namespace NeocortexApiSamplePerformance
             List<int> activeCores = new List<int>();
             int coreIndex = 0;
 
+            Console.WriteLine(" Checking active cores...");
             while (affinityBitmask > 0)
             {
                 if ((affinityBitmask & 1) == 1)
                 {
                     activeCores.Add(coreIndex);
+                    Console.WriteLine($" Core {coreIndex} is ACTIVE");
                 }
                 affinityBitmask >>= 1;
                 coreIndex++;
             }
+
             return activeCores;
         }
 
-        private static double GetCurrentCpuUsage()
-        {
-            var process = Process.GetCurrentProcess();
-            TimeSpan startCpuUsage = process.TotalProcessorTime;
-            DateTime startTime = DateTime.UtcNow;
+        //private static double GetApplicationCpuUsage()
+        //{
+        //    Process currentProcess = Process.GetCurrentProcess();
+        //    TimeSpan prevTotalProcessorTime = currentProcess.TotalProcessorTime;
+        //    DateTime prevTime = DateTime.UtcNow;
 
-            Thread.Sleep(500);
+        //    // Short delay to capture CPU usage accurately
+        //    System.Threading.Thread.Sleep(1000);
 
-            TimeSpan endCpuUsage = process.TotalProcessorTime;
-            DateTime endTime = DateTime.UtcNow;
+        //    TimeSpan newTotalProcessorTime = currentProcess.TotalProcessorTime;
+        //    DateTime newTime = DateTime.UtcNow;
 
-            return Math.Round((endCpuUsage - startCpuUsage).TotalMilliseconds / (endTime - startTime).TotalMilliseconds * 100.0, 2);
-        }
+        //    // Get number of ACTIVE cores (used in affinity)
+        //    int activeCores = currentProcess.ProcessorAffinity.ToInt64().ToString("X").Count(c => c == '1');
 
-        private static double GetAvailableMemory()
-        {
-            return Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
-        }
+        //    // Prevent division by zero
+        //    if (activeCores == 0) activeCores = 1;
 
-        private static void RunMultiSequenceLearningExperiment(Dictionary<string, List<double>> inputs)
-        {
-            MultiSequenceLearning experiment = new MultiSequenceLearning();
-            var predictor = experiment.Run(inputs);
 
-            var testSequences = new List<double[]>
-            {
-                new double[] { 1.0, 2.0, 3.0, 4.0, 2.0, 5.0 },
-                new double[] { 2.0, 3.0, 4.0 },
-                new double[] { 8.0, 1.0, 2.0 }
-            };
+        //    // Calculate CPU Usage relative to active cores
+        //    double cpuUsage = (newTotalProcessorTime - prevTotalProcessorTime).TotalMilliseconds /
+        //                      (newTime - prevTime).TotalMilliseconds * 100 / activeCores;
 
-            foreach (var sequence in testSequences)
-            {
-                predictor.Reset();
-                PredictNextElement(predictor, sequence);
-            }
-        }
+        //    return Math.Round(cpuUsage, 2);
+        //}
 
-        private static double GetExperimentAccuracy()
-        {
-            return new Random().Next(85, 100);
-        }
 
-        private static void PredictNextElement(Predictor predictor, double[] list)
-        {
-            Debug.WriteLine("------------------------------");
-
-            foreach (var item in list)
-            {
-                var res = predictor.Predict(item);
-
-                if (res.Count > 0)
-                {
-                    foreach (var pred in res)
-                    {
-                        Debug.WriteLine($"{pred.PredictedInput} - {pred.Similarity}");
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine("Nothing predicted :(");
-                }
-            }
-
-            Debug.WriteLine("------------------------------");
-        }
+        //private static double GetAvailableMemory()
+        //{
+        //    return Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
+        //}
     }
 }
