@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="GemBox.Spreadsheet" Version="47.0.1268" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.1.3" />
+  </ItemGroup>
+
 </Project>

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
 using NeoCortexApi;
+
 
 namespace NeocortexApiSamplePerformance
 {
@@ -34,8 +36,9 @@ namespace NeocortexApiSamplePerformance
                 Console.WriteLine($" Loaded {trainingSequences.Count} training sequences.");
                 Console.WriteLine($" Loaded {testSequences.Count} test sequences.");
 
+                IExperiment experiment = LoadExperiment(inputParameter.ExperimentClass);
                 // Run Experiment
-                RunExperiment(inputParameter, trainingSequences, testSequences);
+                RunExperiment(inputParameter, trainingSequences, testSequences, experiment);
             }
             catch (Exception ex)
             {
@@ -45,7 +48,7 @@ namespace NeocortexApiSamplePerformance
 
             Console.WriteLine("\n Experiment Completed. Press Enter to exit.");
             // Keeps the console open
-            Console.ReadLine();  
+            Console.ReadLine();
         }
 
         private static InputParameter ParseArguments(string[] args)
@@ -114,21 +117,53 @@ namespace NeocortexApiSamplePerformance
             }
         }
 
-        private static (double cpuUsage, double ramUsage, double cpuSpeedGHz) GetSystemPerformanceMetrics()
+        private static (double ramUsage, double cpuSpeedGHz, string dotNetVersion) GetSystemPerformanceMetrics()
         {
-            using (var process = Process.GetCurrentProcess())
+            //double cpuUsage = GetCpuUsage(); 
+            double ramUsage = GetRamUsage();
+            double cpuSpeedGHz = GetCpuSpeedGHz();
+            string dotNetVersion = GetDotNetVersion();
+
+            return (ramUsage, cpuSpeedGHz, dotNetVersion);
+        }
+
+        // CPU Usage Calculation
+        //private static double GetCpuUsage()
+        //{
+        //    using (Process process = Process.GetCurrentProcess())
+        //    {
+        //        // Capture CPU time at the start
+        //        TimeSpan startCpuTime = process.TotalProcessorTime;
+        //        DateTime startTime = DateTime.UtcNow;
+
+        //        // Wait for a short time (500ms) to measure CPU usage difference
+        //        System.Threading.Thread.Sleep(500);
+
+        //        // Capture CPU time again
+        //        TimeSpan endCpuTime = process.TotalProcessorTime;
+        //        DateTime endTime = DateTime.UtcNow;
+
+        //        // Calculate CPU usage percentage over elapsed time
+        //        double cpuUsedMs = (endCpuTime - startCpuTime).TotalMilliseconds;
+        //        double totalElapsedMs = (endTime - startTime).TotalMilliseconds;
+
+        //        double cpuUsage = (cpuUsedMs / (totalElapsedMs * Environment.ProcessorCount)) * 100;
+
+        //        // Clamp CPU usage between 0-100%
+        //        return Math.Max(0, Math.Min(cpuUsage, 100.0));
+        //    }
+        //}
+
+        //Ensure RAM Usage is Calculated Correctly**
+        private static double GetRamUsage()
+        {
+            using (Process process = Process.GetCurrentProcess())
             {
-                double cpuUsage = process.TotalProcessorTime.TotalMilliseconds / Environment.ProcessorCount;
-                double ramUsage = process.PrivateMemorySize64 / (1024.0 * 1024.0); // Convert to MB
-
-                // Get CPU Speed (GHz)
-                double cpuSpeedGHz = GetCpuSpeedGHz();
-
-                return (cpuUsage, ramUsage, cpuSpeedGHz);
+                return process.PrivateMemorySize64 / (1024.0 * 1024.0); // Convert bytes to MB
             }
         }
 
-        // Function to Get CPU Speed
+       
         private static double GetCpuSpeedGHz()
         {
             try
@@ -137,33 +172,45 @@ namespace NeocortexApiSamplePerformance
                 {
                     foreach (var item in searcher.Get())
                     {
-                        return Convert.ToDouble(item["MaxClockSpeed"]) / 1000.0; // Convert MHz to GHz
+                        if (item["MaxClockSpeed"] != null)
+                        {
+                            double maxClockSpeedMHz = Convert.ToDouble(item["MaxClockSpeed"]);
+                            double maxClockSpeedGHz = maxClockSpeedMHz / 1000.0; // Convert MHz to GHz
+
+                            Console.WriteLine($" CPU Speed Detected: {maxClockSpeedGHz:F2} GHz");
+                            return maxClockSpeedGHz;
+                        }
                     }
                 }
+
+                Console.WriteLine(" WARNING: Could not retrieve CPU speed. Returning default value.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ ERROR: Could not retrieve CPU speed. Exception: {ex.Message}");
+                Console.WriteLine($" ERROR: Could not retrieve CPU speed. Exception: {ex.Message}");
             }
-            return 0; // Default to 0 if not found
+
+            return -1; 
         }
 
-        //private static (double cpuUsage, double ramUsage) GetSystemPerformanceMetrics()
-        //{
-        //    using (var process = Process.GetCurrentProcess())
-        //    {
-        //        double cpuUsage = process.TotalProcessorTime.TotalMilliseconds / Environment.ProcessorCount;
-        //        double ramUsage = process.PrivateMemorySize64 / (1024.0 * 1024.0);
 
-        //        return (cpuUsage, ramUsage);
-        //    }
-        //}
+        /// <summary>
+        /// Loads an experiment class dynamically using reflection.
+        /// </summary>
+        private static IExperiment LoadExperiment(string experimentClassName)
+        {
+            Type experimentType = Type.GetType($"NeocortexApiSamplePerformance.{experimentClassName}");
 
-        private static void RunExperiment(InputParameter inputParameter, List<Sequence> trainingSequences, List<Sequence> testSequences)
+            if (experimentType == null || !typeof(IExperiment).IsAssignableFrom(experimentType))
+                throw new ArgumentException($"Invalid experiment: {experimentClassName}. Make sure it implements IExperiment.");
+
+            return (IExperiment)Activator.CreateInstance(experimentType);
+        }
+        private static void RunExperiment(InputParameter inputParameter, List<Sequence> trainingSequences, List<Sequence> testSequences, IExperiment experiment)
         {
             Console.WriteLine($" Running Experiment: {inputParameter.ExperimentClass}\n");
 
-            MultiSequenceLearning experiment = new MultiSequenceLearning();
+            //MultiSequenceLearning experiment = new MultiSequenceLearning();
 
             Console.WriteLine(" Starting Model Training...");
             Stopwatch trainingTimer = Stopwatch.StartNew();
@@ -182,10 +229,10 @@ namespace NeocortexApiSamplePerformance
 
             Console.WriteLine($" Model Training Completed in {learningTimeSeconds:F2} seconds.");
             //var (cpuUsage, ramUsage) = GetSystemPerformanceMetrics();
-            var (cpuUsage, ramUsage, cpuSpeedGHz) = GetSystemPerformanceMetrics();
+            var (ramUsage, cpuSpeedGHz, dotNetVersion) = GetSystemPerformanceMetrics();
 
 
-            //  Now, Run Testing
+            // Run Testing
             Console.WriteLine(" Starting Model Testing...");
             Stopwatch testingTimer = Stopwatch.StartNew();
 
@@ -193,7 +240,7 @@ namespace NeocortexApiSamplePerformance
             {
                 Console.WriteLine($" Testing Sequence: {testSeq.name} -> {string.Join("-", testSeq.Data)}");
                 // Reset predictor before testing a new sequence
-                predictor.Reset();  
+                predictor.Reset();
 
                 int matchCount = 0;
                 int totalPredictions = testSeq.Data.Length - 1;
@@ -244,10 +291,10 @@ namespace NeocortexApiSamplePerformance
 
                 Console.WriteLine($" Accuracy for {testSeq.name}: {testAccuracy:F2}%");
 
-                // Now log both training and testing results
+
                 foreach (var seq in processedTrainingData)
                 {
-                    double trainAccuracy = experiment.GetAccuracy(seq.name);  //  Fetch actual training accuracy
+                    double trainAccuracy = experiment.GetAccuracy(seq.name);
 
                     Console.WriteLine($"Logging: {seq.name}, Training Accuracy: {trainAccuracy}, Testing Accuracy: {testAccuracy}, Output file: {inputParameter.OutputCsvPath}");
 
@@ -256,45 +303,16 @@ namespace NeocortexApiSamplePerformance
                      inputParameter,
                      seq.name,
                      seq.Data.Length,
-                     learningTimeSeconds, 
-                     cpuUsage,
+                     learningTimeSeconds,
+                     //cpuUsage,
                      ramUsage,
                      cpuSpeedGHz,
                      inputParameter.CpuCores,
-                     trainAccuracy  
+                     trainAccuracy,
+                     dotNetVersion
                         );
 
 
-                    //PerformanceLogger.LogPerformance(
-                    // inputParameter.ExperimentClass,
-                    // inputParameter,
-                    // seq.name,
-                    // seq.Data.Length, // 🔹 Number of Elements in the Sequence
-                    // learningTimeSeconds,
-                    // cpuUsage,
-                    // ramUsage,
-                    // cpuSpeedGHz, // NEW: Track CPU Speed
-                    // inputParameter.CpuCores
-                    // );
-                    //PerformanceLogger.LogPerformance(
-                    //// Pass Experiment Name
-                    //inputParameter.ExperimentClass,
-                    //// Pass InputParameter object
-                    //inputParameter,  
-                    //seq.name,
-                    //seq.Data.Length,
-                    //// Log training time
-                    //learningTimeSeconds,   
-                    //learningTimeMilliseconds,
-                    //// Log CPU usage
-                    //cpuUsage,
-                    //// Log RAM usage
-                    //ramUsage,
-                    //// Log active CPU cores
-                    //inputParameter.CpuCores,
-                    //// Log actual testing accuracy
-                    //testAccuracy
-                    //);
 
 
                     Console.WriteLine(" PerformanceLogger.LogPerformance() called successfully!");
@@ -322,7 +340,10 @@ namespace NeocortexApiSamplePerformance
 
             return activeCores.Count;
         }
-
+        private static string GetDotNetVersion()
+        {
+            return System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
+        }
         private static List<int> GetActiveCores(int affinityBitmask)
         {
             List<int> activeCores = new List<int>();
@@ -343,36 +364,5 @@ namespace NeocortexApiSamplePerformance
             return activeCores;
         }
 
-        //private static double GetApplicationCpuUsage()
-        //{
-        //    Process currentProcess = Process.GetCurrentProcess();
-        //    TimeSpan prevTotalProcessorTime = currentProcess.TotalProcessorTime;
-        //    DateTime prevTime = DateTime.UtcNow;
-
-        //    // Short delay to capture CPU usage accurately
-        //    System.Threading.Thread.Sleep(1000);
-
-        //    TimeSpan newTotalProcessorTime = currentProcess.TotalProcessorTime;
-        //    DateTime newTime = DateTime.UtcNow;
-
-        //    // Get number of ACTIVE cores (used in affinity)
-        //    int activeCores = currentProcess.ProcessorAffinity.ToInt64().ToString("X").Count(c => c == '1');
-
-        //    // Prevent division by zero
-        //    if (activeCores == 0) activeCores = 1;
-
-
-        //    // Calculate CPU Usage relative to active cores
-        //    double cpuUsage = (newTotalProcessorTime - prevTotalProcessorTime).TotalMilliseconds /
-        //                      (newTime - prevTime).TotalMilliseconds * 100 / activeCores;
-
-        //    return Math.Round(cpuUsage, 2);
-        //}
-
-
-        //private static double GetAvailableMemory()
-        //{
-        //    return Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
-        //}
     }
 }

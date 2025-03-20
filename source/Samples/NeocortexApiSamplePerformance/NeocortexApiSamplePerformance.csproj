@@ -6,19 +6,24 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
-	
-	
+
+
 
 	<ItemGroup>
 		<PackageReference Include="BouncyCastle.NetCore" Version="2.2.1" />
 		<PackageReference Include="EPPlus" Version="7.7.0" />
+		<PackageReference Include="GemBox.Spreadsheet" Version="47.0.1268" />
+		<PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.1.3" />
+		<PackageReference Include="NeoCortexApi" Version="1.1.5" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="System.Collections" Version="4.3.0" />
 		<PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
 		<PackageReference Include="System.Collections.NonGeneric" Version="4.3.0" />
 		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.3" />
 		<PackageReference Include="System.IO" Version="4.3.0" />
+		<PackageReference Include="System.Linq" Version="4.3.0" />
 		<PackageReference Include="System.Management" Version="9.0.3" />
+		<PackageReference Include="System.Reflection" Version="4.3.0" />
 		<PackageReference Include="System.Threading" Version="4.3.0" />
 		<PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
 	</ItemGroup>
@@ -31,7 +36,6 @@
 		<ProjectReference Include="..\..\NeoCortexApi\NeoCortexApi.csproj" />
 		<ProjectReference Include="..\..\NeoCortexEntities\NeoCortexEntities.csproj" />
 		<ProjectReference Include="..\..\NeoCortexUtils\NeoCortexUtils.csproj" />
-		<ProjectReference Include="..\NeoCortexApiSample\NeoCortexApiSample.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -41,22 +45,22 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		 <None Update="dataset\dataset_01.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="dataset\dataset_02.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="dataset\dataset_03.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="dataset\dataset_04.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="dataset\test_01.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-		
+		<None Update="dataset\dataset_01.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="dataset\dataset_02.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="dataset\dataset_03.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="dataset\dataset_04.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="dataset\test_01.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+
 	</ItemGroup>
 
 </Project>

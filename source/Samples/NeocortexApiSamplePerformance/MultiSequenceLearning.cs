@@ -22,7 +22,7 @@ namespace NeocortexApiSamplePerformance
     /// <summary>
     /// Implements an experiment that demonstrates how to learn sequences.
     /// </summary>
-    public class MultiSequenceLearning
+    public class MultiSequenceLearning : IExperiment
     {
         /// <summary>
         /// Runs the learning of sequences.

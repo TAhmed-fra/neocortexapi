@@ -18,7 +18,7 @@ def plot_scatter_with_trend(x, y, xlabel, ylabel, title, filename, color):
     plt.figure(figsize=(8, 5))
     plt.scatter(x, y, c=color, label="Learning Time", s=50, alpha=0.75, edgecolors="black")
     
-    # Trend Line (Regression Line)
+    #  Trend Line (Regression Line)
     if len(x) > 1:  # Ensure there's enough data for trend line
         z = np.polyfit(x, y, 1)  # Linear Fit
         p = np.poly1d(z)
@@ -38,7 +38,7 @@ plot_scatter_with_trend(df_sorted["Data Size"], df_sorted["Learning Time (s)"],
                          "Number of Elements in Sequence", "Learning Time (s)",
                          "Learning Time vs. Number of Elements", "learning_time_vs_elements.png", "blue")
 
-# Plot Learning Time vs. CPU Cores
+#  Plot Learning Time vs. CPU Cores
 df_sorted = df.sort_values(by="Cores Used")
 plot_scatter_with_trend(df_sorted["Cores Used"], df_sorted["Learning Time (s)"],
                          "Number of CPU Cores Used", "Learning Time (s)",
