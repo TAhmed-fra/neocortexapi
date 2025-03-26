@@ -321,7 +321,7 @@ namespace NeocortexApiSamplePerformance
             //Console.WriteLine($"GetKey={sequence}_{key}");
             return $"{sequence}_{key}";
         }
-        // 🔹 ADDED: Method to retrieve accuracy from `Program.cs`
+        // Method to retrieve accuracy from `Program.cs`
         public double GetAccuracy(string sequenceName)
         {
             return sequenceAccuracies.ContainsKey(sequenceName) ? sequenceAccuracies[sequenceName] : 0.0;

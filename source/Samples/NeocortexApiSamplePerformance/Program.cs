@@ -35,9 +35,11 @@ namespace NeocortexApiSamplePerformance
                 Console.WriteLine($" CPU Affinity Set. Active Cores: {string.Join(", ", GetActiveCores(inputParameter.CpuAffinity))}\n");
                 Console.WriteLine($" Loaded {trainingSequences.Count} training sequences.");
                 Console.WriteLine($" Loaded {testSequences.Count} test sequences.");
-
+                
+                // Dynamically load selected experiment
                 IExperiment experiment = LoadExperiment(inputParameter.ExperimentClass);
-                // Run Experiment
+                
+                // Execute training and testing
                 RunExperiment(inputParameter, trainingSequences, testSequences, experiment);
             }
             catch (Exception ex)
@@ -51,6 +53,9 @@ namespace NeocortexApiSamplePerformance
             Console.ReadLine();
         }
 
+        /// <summary>
+        /// Parses command-line arguments into structured parameters
+        /// </summary>
         private static InputParameter ParseArguments(string[] args)
         {
             if (args.Length == 0)
@@ -68,6 +73,9 @@ namespace NeocortexApiSamplePerformance
             };
         }
 
+        /// <summary>
+        /// Extracts specific argument value from CLI args array
+        /// </summary>
         private static string GetArgumentValue(string[] args, string argName)
         {
             for (int i = 0; i < args.Length; i++)
@@ -81,6 +89,9 @@ namespace NeocortexApiSamplePerformance
             throw new ArgumentException($" Missing required argument: {argName}");
         }
 
+        /// <summary>
+        /// Validates the existence of directory containing input JSONs
+        /// </summary>
         private static void ValidateInputDirectory(string folderPath)
         {
             if (!Directory.Exists(folderPath))
@@ -89,6 +100,9 @@ namespace NeocortexApiSamplePerformance
             }
         }
 
+        /// <summary>
+        /// Loads sequences from all matching JSON files
+        /// </summary>
         private static List<Sequence> LoadDatasets(string folderPath, string pattern)
         {
             List<Sequence> sequences = new List<Sequence>();
@@ -103,6 +117,9 @@ namespace NeocortexApiSamplePerformance
             return sequences;
         }
 
+        /// <summary>
+        /// Reads a dataset JSON file and deserializes into Sequence objects
+        /// </summary>
         private static List<Sequence> ReadDataset(string datasetPath)
         {
             try
@@ -117,6 +134,9 @@ namespace NeocortexApiSamplePerformance
             }
         }
 
+        /// <summary>
+        /// Gathers system performance metrics (RAM, CPU speed, .NET version)
+        /// </summary>
         private static (double ramUsage, double cpuSpeedGHz, string dotNetVersion) GetSystemPerformanceMetrics()
         {
             //double cpuUsage = GetCpuUsage(); 
@@ -127,34 +147,10 @@ namespace NeocortexApiSamplePerformance
             return (ramUsage, cpuSpeedGHz, dotNetVersion);
         }
 
-        // CPU Usage Calculation
-        //private static double GetCpuUsage()
-        //{
-        //    using (Process process = Process.GetCurrentProcess())
-        //    {
-        //        // Capture CPU time at the start
-        //        TimeSpan startCpuTime = process.TotalProcessorTime;
-        //        DateTime startTime = DateTime.UtcNow;
 
-        //        // Wait for a short time (500ms) to measure CPU usage difference
-        //        System.Threading.Thread.Sleep(500);
-
-        //        // Capture CPU time again
-        //        TimeSpan endCpuTime = process.TotalProcessorTime;
-        //        DateTime endTime = DateTime.UtcNow;
-
-        //        // Calculate CPU usage percentage over elapsed time
-        //        double cpuUsedMs = (endCpuTime - startCpuTime).TotalMilliseconds;
-        //        double totalElapsedMs = (endTime - startTime).TotalMilliseconds;
-
-        //        double cpuUsage = (cpuUsedMs / (totalElapsedMs * Environment.ProcessorCount)) * 100;
-
-        //        // Clamp CPU usage between 0-100%
-        //        return Math.Max(0, Math.Min(cpuUsage, 100.0));
-        //    }
-        //}
-
-        //Ensure RAM Usage is Calculated Correctly**
+        /// <summary>
+        /// Returns current memory consumption of the process (in MB)
+        /// </summary>
         private static double GetRamUsage()
         {
             using (Process process = Process.GetCurrentProcess())
@@ -163,7 +159,9 @@ namespace NeocortexApiSamplePerformance
             }
         }
 
-       
+        /// <summary>
+        /// Retrieves max CPU frequency from system (in GHz)
+        /// </summary>
         private static double GetCpuSpeedGHz()
         {
             try
@@ -195,7 +193,7 @@ namespace NeocortexApiSamplePerformance
 
 
         /// <summary>
-        /// Loads an experiment class dynamically using reflection.
+        /// Loads the experiment class dynamically using reflection from the command line.
         /// </summary>
         private static IExperiment LoadExperiment(string experimentClassName)
         {
@@ -206,6 +204,10 @@ namespace NeocortexApiSamplePerformance
 
             return (IExperiment)Activator.CreateInstance(experimentType);
         }
+
+        /// <summary>
+        /// Handles model training and testing, including logging performance
+        /// </summary>
         private static void RunExperiment(InputParameter inputParameter, List<Sequence> trainingSequences, List<Sequence> testSequences, IExperiment experiment)
         {
             Console.WriteLine($" Running Experiment: {inputParameter.ExperimentClass}\n");
@@ -215,6 +217,7 @@ namespace NeocortexApiSamplePerformance
             Console.WriteLine(" Starting Model Training...");
             Stopwatch trainingTimer = Stopwatch.StartNew();
 
+            // Merge training sequences with the same name into one unified sequence
             var processedTrainingData = trainingSequences
                 .GroupBy(seq => seq.name)
                 .Select(g => new Sequence { name = g.Key, Data = g.SelectMany(seq => seq.Data).ToArray() })
@@ -322,7 +325,9 @@ namespace NeocortexApiSamplePerformance
             Console.WriteLine($" Model Testing Completed in {testingTimer.Elapsed.TotalSeconds:F2} seconds.");
         }
 
-
+        /// <summary>
+        /// Applies CPU affinity using a bitmask to control core usage
+        /// </summary>
         private static int SetCpuAffinity(int affinityBitmask)
         {
             Process process = Process.GetCurrentProcess();
@@ -340,10 +345,18 @@ namespace NeocortexApiSamplePerformance
 
             return activeCores.Count;
         }
+
+        /// <summary>
+        /// Retrieves the current .NET runtime version
+        /// </summary>
         private static string GetDotNetVersion()
         {
             return System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
         }
+
+        /// <summary>
+        /// Extracts the list of enabled CPU cores from affinity bitmask
+        /// </summary>
         private static List<int> GetActiveCores(int affinityBitmask)
         {
             List<int> activeCores = new List<int>();

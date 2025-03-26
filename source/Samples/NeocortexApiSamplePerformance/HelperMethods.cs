@@ -165,45 +165,6 @@ namespace MultiSequenceLearning
         }
 
         /// <summary>
-        /// Creats multiple sequences as per parameters
-        /// </summary>
-        /// <param name="count">Number of sequences to be created</param>
-        /// <param name="size">Size of each sequence</param>
-        /// <param name="startVal">Minimum value of item in a sequence</param>
-        /// <param name="stopVal">Maximum value of item in a sequence</param>
-        /// <returns>Object of list of Sequence</returns>
-        //public static List<Sequence> CreateSequences(int count, int size, int startVal, int stopVal)
-        //{
-        //    List<Sequence> dataset = new List<Sequence>();
-
-        //    for (int i = 0; i < count; i++)
-        //    {
-        //        Sequence sequence = new Sequence();
-        //        sequence.name = $"S{i + 1}";
-        //        sequence.data = getSyntheticData(size, startVal, stopVal);
-        //        dataset.Add(sequence);
-        //    }
-
-        //    return dataset;
-        //}
-
-        /// <summary>
-        /// Creates a sequence of given size-3 and range
-        /// </summary>
-        /// <param name="size">Size of list</param>
-        /// <param name="startVal">Min range of the list</param>
-        /// <param name="stopVal">Max range of the list</param>
-        /// <returns></returns>
-        private static int[] getSyntheticData(int size, int startVal, int stopVal)
-        {
-            int[] data = new int[size];
-
-            data = randomRemoveDouble(randomDouble(size, startVal, stopVal), 3);
-
-            return data;
-        }
-
-        /// <summary>
         /// Creates a sorted list of array with given paramerters
         /// </summary>
         /// <param name="size">Size of array</param>
