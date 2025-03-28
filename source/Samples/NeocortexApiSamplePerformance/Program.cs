@@ -293,7 +293,7 @@ namespace NeocortexApiSamplePerformance
                 {
                     double trainAccuracy = experiment.GetAccuracy(seq.name);
 
-                    Console.WriteLine($"Logging: {seq.name}, Training Accuracy: {trainAccuracy}, Testing Accuracy: {testAccuracy}, Output file: {inputParameter.OutputCsvPath}");
+                    Console.WriteLine($"Logging: {seq.name}, Training Accuracy: {trainAccuracy}, Output file: {inputParameter.OutputCsvPath}");
 
                     PerformanceLogger.LogPerformance(
                      inputParameter.ExperimentClass,
