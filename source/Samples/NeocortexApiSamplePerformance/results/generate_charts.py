@@ -1,27 +1,18 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 # Load CSV
-df = pd.read_csv("Final_Result.csv")
+df = pd.read_csv("Result.csv")
 
-# Clean column names (remove extra spaces)
+# Clean column names 
 df.columns = df.columns.str.strip()
 
 # Set seaborn style
 sns.set(style="whitegrid")
 
-# === Plot 1: Learning Time vs. Sequence Length (Data Size) ===
-plt.figure(figsize=(8, 5))
-sns.scatterplot(data=df, x="Data Size", y="Learning Time (s)", hue="Experiment Name")
-plt.title("Learning Time vs. Sequence Length")
-plt.xlabel("Sequence Length")
-plt.ylabel("Learning Time (s)")
-plt.tight_layout()
-plt.savefig("learning_time_vs_sequence_length.png")
-plt.close()
-
-# === Plot 2: Learning Time vs. CPU Cores ===
+# Learning Time vs. CPU Cores
 avg_cores_group = df.groupby("Cores Used")["Learning Time (s)"].mean().reset_index()
 
 plt.figure(figsize=(8, 5))
@@ -33,17 +24,35 @@ plt.tight_layout()
 plt.savefig("learning_time_vs_cpu_cores.png")
 plt.close()
 
-# === Plot 3: Learning Time vs. CPU Speed ===
+# Learning Time vs. CPU Speed 
+
+min_speed = df["CPU Speed (GHz)"].min()
+max_speed = df["CPU Speed (GHz)"].max()
+
+# Expand the range a little to capture edges nicely
+bin_edges = np.linspace(np.floor(min_speed * 10) / 10, np.ceil(max_speed * 10) / 10 + 0.05, num=6)
+
+# Create labels
+labels = [f"{bin_edges[i]:.2f}–{bin_edges[i+1]:.2f}" for i in range(len(bin_edges) - 1)]
+
+# Assign bins
+df["CPU Speed Range"] = pd.cut(df["CPU Speed (GHz)"], bins=bin_edges, labels=labels, include_lowest=True)
+
+# Group and average
+avg_speed_group = df.groupby("CPU Speed Range")["Learning Time (s)"].mean().reset_index()
+
+# Plot
 plt.figure(figsize=(8, 5))
-sns.scatterplot(data=df, x="CPU Speed (GHz)", y="Learning Time (s)", hue="Experiment Name")
-plt.title("Learning Time vs. CPU Speed")
+sns.barplot(data=avg_speed_group, x="CPU Speed Range", y="Learning Time (s)", palette="Greens")
+plt.title("Avg. Learning Time vs. CPU Speed")
 plt.xlabel("CPU Speed (GHz)")
-plt.ylabel("Learning Time (s)")
+plt.ylabel("Avg. Learning Time (s)")
 plt.tight_layout()
 plt.savefig("learning_time_vs_cpu_speed.png")
 plt.close()
 
-# === Plot 4: Learning Time vs. .NET Version ===
+
+# Learning Time vs. .NET Version 
 avg_dotnet_group = df.groupby("DotNet Version")["Learning Time (s)"].mean().reset_index()
 
 plt.figure(figsize=(8, 5))
@@ -55,15 +64,5 @@ plt.tight_layout()
 plt.savefig("learning_time_vs_dotnet_version.png")
 plt.close()
 
-# === Plot 5: Accuracy vs. Sequence Length ===
-plt.figure(figsize=(8, 5))
-sns.scatterplot(data=df, x="Data Size", y="Training Accuracy (%)", label="Training", color="green")
-plt.title("Training Accuracy vs. Sequence Length")
-plt.xlabel("Sequence Length")
-plt.ylabel("Accuracy (%)")
-plt.legend()
-plt.tight_layout()
-plt.savefig("accuracy_vs_sequence_length.png")
-plt.close()
 
 print(" All charts generated successfully!")
