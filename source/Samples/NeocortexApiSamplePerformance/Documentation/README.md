@@ -310,8 +310,9 @@ Learning Time vs .NET Version
 
 ## Conclusion
 
-In this project, a modular and extendable experimental framework for assessing the performance of Hierarchical Temporal Memory (HTM) based learning, especially the MultiSequence Learning model, is successfully implemented. Dynamic control over CPU affinity, core selection, and .NET runtime versions were made possible during execution by including a console-based runner with variable parameters.
-Key performance metrics such as learning time, RAM usage, CPU speed, and runtime versions were logged in CSV outputs. The experiments results showed a relationship between CPU core count and learning efficiency, confirming the advantage of parallelization. Also, the comparison among dotnet versions showed significant runtime optimizations, where .NET 9.0.3 outperformed .NET 8.0.14 in most configurations. IExperiment interface which uses reflection makes this application flexible to reuse for wider HTM research and testing.
+In this project a modular and extendable experimental framework for assessing the performance of Hierarchical Temporal Memory (HTM) based learning, especially the MultiSequence Learning model, is successfully implemented. Dynamic control over CPU affinity, core selection, and .NET runtime versions were made possible during execution by including a console-based runner with variable parameters.
+Key performance metrics such as learning time, RAM usage, CPU speed, and runtime versions were logged in CSV outputs. The experiments results showed a relationship between CPU core count and learning efficiency, confirming the advantage of parallelization. Additionally, a comparison of the various.NET versions revealed comparable overall performance; however, 8.0.14 produced more reliable and consistent results, whereas 9.0.3 produced greater unpredictability, maybe as a result of internal runtime behaviour. IExperiment interface which uses reflection makes this application flexible to reuse for wider HTM research and testing.
+
 
 
 ## NuGet Packages Used
