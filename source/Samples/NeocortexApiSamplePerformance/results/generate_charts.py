@@ -16,7 +16,7 @@ plt.title("Learning Time vs. CPU Cores")
 plt.xlabel("CPU Cores")
 plt.ylabel("Learning Time (s)")
 plt.tight_layout()
-plt.savefig("learning_time_vs_cpu_cores_clean.png")
+plt.savefig("learning_time_vs_cpu_cores.png")
 plt.close()
 
 # === Box Plot 2: Learning Time vs. CPU Speed ===
@@ -26,7 +26,7 @@ plt.title("Learning Time vs. CPU Speed")
 plt.xlabel("CPU Speed (GHz)")
 plt.ylabel("Learning Time (s)")
 plt.tight_layout()
-plt.savefig("learning_time_vs_cpu_speed_clean.png")
+plt.savefig("learning_time_vs_cpu_speed.png")
 plt.close()
 
 # === Box Plot 3: Learning Time vs. .NET Version ===
@@ -36,7 +36,7 @@ plt.title("Learning Time vs. .NET Version")
 plt.xlabel(".NET Version")
 plt.ylabel("Learning Time (s)")
 plt.tight_layout()
-plt.savefig("learning_time_vs_dotnet_version_clean.png")
+plt.savefig("learning_time_vs_dotnet_version.png")
 plt.close()
 
 print(" All box plots generated and saved successfully!")
