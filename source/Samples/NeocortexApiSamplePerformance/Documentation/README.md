@@ -293,14 +293,14 @@ Generates bar plots and saves them as PNGs in the same folder.
 
 Learning Time vs CPU Cores
 
-![learning_time_vs_cpu_cores](https://github.com/TAhmed-fra/neocortexapi/blob/PerfEX/source/Samples/NeocortexApiSamplePerformance/results/learning_time_vs_cpu_cores_clean.png)
+![learning_time_vs_cpu_cores](https://github.com/TAhmed-fra/neocortexapi/blob/PerfEX/source/Samples/NeocortexApiSamplePerformance/results/learning_time_vs_cpu_cores.png)
 
 Learning Time vs CPU Speed
 
-![learning_time_vs_cpu_speed](https://github.com/TAhmed-fra/neocortexapi/blob/PerfEX/source/Samples/NeocortexApiSamplePerformance/results/learning_time_vs_cpu_speed_clean.png)
+![learning_time_vs_cpu_speed](https://github.com/TAhmed-fra/neocortexapi/blob/PerfEX/source/Samples/NeocortexApiSamplePerformance/results/learning_time_vs_cpu_speed.png)
 
 Learning Time vs .NET Version
-![learning_time_vs_dotnet_version](https://github.com/TAhmed-fra/neocortexapi/blob/PerfEX/source/Samples/NeocortexApiSamplePerformance/results/learning_time_vs_dotnet_version_clean.png)
+![learning_time_vs_dotnet_version](https://github.com/TAhmed-fra/neocortexapi/blob/PerfEX/source/Samples/NeocortexApiSamplePerformance/results/learning_time_vs_dotnet_version.png)
 
 
 
